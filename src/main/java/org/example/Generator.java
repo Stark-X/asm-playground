@@ -1,11 +1,12 @@
 package org.example;
 
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 public class Generator implements Opcodes {
-    public static byte[] dump() {
+    public static byte[] dumpHelloWorld() {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
         cw.visit(V1_8, ACC_PUBLIC | ACC_SUPER, "com/example/HelloWorld", null, "java/lang/Object", null);
 
@@ -27,6 +28,30 @@ public class Generator implements Opcodes {
             mv.visitMaxs(1, 1);
             mv.visitEnd();
         }
+        cw.visitEnd();
+        return cw.toByteArray();
+    }
+
+    public static byte[] dumpInterfaceWithFields() {
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        cw.visit(V1_8, ACC_PUBLIC | ACC_ABSTRACT | ACC_INTERFACE, "com/example/InterfaceWithFields", null, "java/lang/Object", new String[]{"java/lang/Cloneable"});
+        {
+            FieldVisitor fv = cw.visitField(ACC_PUBLIC | ACC_FINAL | ACC_STATIC, "LESS", "I", null, -1);
+            fv.visitEnd();
+        }
+        {
+            FieldVisitor fv = cw.visitField(ACC_PUBLIC | ACC_FINAL | ACC_STATIC, "EQUAL", "I", null, 0);
+            fv.visitEnd();
+        }
+        {
+            FieldVisitor fv = cw.visitField(ACC_PUBLIC | ACC_FINAL | ACC_STATIC, "GREATER", "I", null, 1);
+            fv.visitEnd();
+        }
+        {
+            MethodVisitor mv = cw.visitMethod(ACC_PUBLIC | ACC_ABSTRACT, "compareTo", "(Ljava/lang/Object;)I", null, null);
+            mv.visitEnd();
+        }
+
         cw.visitEnd();
         return cw.toByteArray();
     }
