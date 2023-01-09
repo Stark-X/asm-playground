@@ -41,9 +41,9 @@ class GeneratorTest {
     @Test
     void should_return_interface_with_three_fields_and_one_method_when_dump() throws Exception {
         Class<?> IClazz = classLoader.loadClass("com.example.InterfaceWithFields");
-        assertEquals(IClazz.getDeclaredField("LESS").get(null), -1);
-        assertEquals(IClazz.getDeclaredField("EQUAL").get(null), 0);
-        assertEquals(IClazz.getDeclaredField("GREATER").get(null), 1);
-        assertEquals(IClazz.getDeclaredMethod("compareTo", Object.class).getReturnType(), int.class);
+        assertEquals(-1, IClazz.getDeclaredField("LESS").get(null));
+        assertEquals(0, IClazz.getDeclaredField("EQUAL").get(null));
+        assertEquals(1, IClazz.getDeclaredField("GREATER").get(null));
+        assertEquals(int.class, IClazz.getDeclaredMethod("compareTo", Object.class).getReturnType());
     }
 }
