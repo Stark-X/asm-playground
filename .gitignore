@@ -1,3 +1,5 @@
+# avoiding internal maven repository address exposed
+.idea/jarRepositories.xml
 # Created by https://www.toptal.com/developers/gitignore/api/vim,visualstudiocode,intellij,maven
 # Edit at https://www.toptal.com/developers/gitignore?templates=vim,visualstudiocode,intellij,maven
 
