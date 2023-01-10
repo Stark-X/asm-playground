@@ -29,7 +29,9 @@ public class Parser {
         byte[] bytes;
         try (BufferedInputStream in = new BufferedInputStream(Files.newInputStream(filePath))){
             bytes = new byte[in.available()];
-            in.read(bytes);
+            if (in.read(bytes) != bytes.length) {
+                throw new IOException("File content is not fully read");
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
