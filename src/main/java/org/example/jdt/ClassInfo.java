@@ -1,33 +1,25 @@
 package org.example.jdt;
 
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
-
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ClassInfo {
-    private final Set<String> methodHashes = new HashSet<>();
+    private final List<MethodInfo> methodsInfo = new ArrayList<>();
+    private String binaryName;
 
-    public void addMethod(String methodContent) {
-        addMethod(methodContent.getBytes());
+    public void addMethod(MethodInfo methodInfo) {
+        this.methodsInfo.add(methodInfo);
     }
 
-    public void addMethod(byte[] methodContent) {
-        HashCode hashCode = Hashing.crc32().hashBytes(methodContent);
-        methodHashes.add(hashCode.toString());
+    public boolean containMethod(MethodInfo methodInfo) {
+        return methodsInfo.parallelStream().anyMatch(method -> method.getDigest().equals(methodInfo.getDigest()));
     }
 
-    public Set<String> getMethodHashes() {
-        return methodHashes;
+    public void setBinaryName(String binaryName) {
+        this.binaryName = binaryName;
     }
 
-    public boolean containMethod(String methodContent) {
-        return containMethod(methodContent.getBytes());
-    }
-
-    public boolean containMethod(byte[] methodContent) {
-        HashCode hashCode = Hashing.crc32().hashBytes(methodContent);
-        return methodHashes.contains(hashCode.toString());
+    public String getBinaryName() {
+        return binaryName;
     }
 }
