@@ -11,12 +11,16 @@ import java.nio.file.Path;
 
 public class Parser {
     public ClassInfo parse(Path filePath) {
+        return parse(getFileContent(filePath), filePath.getFileName().toString());
+    }
+
+    public ClassInfo parse(char[] fileContent, String fileName) {
         ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
         parser.setResolveBindings(true);
         parser.setEnvironment(new String[]{"target/classes"}, new String[]{"src/"}, new String[]{"UTF-8"}, true);
-        parser.setUnitName(filePath.getFileName().toString());
+        parser.setUnitName(fileName);
         parser.setBindingsRecovery(true);
-        parser.setSource(getFileContent(filePath));
+        parser.setSource(fileContent);
 
         CompilationUnit unit = (CompilationUnit) parser.createAST(null);
         ClassInfo classInfo = new ClassInfo();

@@ -5,6 +5,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.ObjectLoader;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -12,8 +13,10 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
+import org.eclipse.jgit.treewalk.TreeWalk;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -21,25 +24,25 @@ import java.util.Optional;
 public class Dumper {
     private final Repository repo;
 
-    Dumper(String repoPath) throws IOException {
+    public Dumper(String repoPath) throws IOException {
         this.repo = FileRepositoryBuilder.create(Path.of(repoPath, ".git/").toFile());
     }
 
     /**
-     * dump diff entries between HEAD and destination commit
+     * dump diff entries between HEAD and source commit
      *
-     * @param destCommitId to compare commit id, full length id (40 char)
-     * @param getDetail    get diff detail or not
+     * @param srcCommit baseline commit id, full length id (40 char)
+     * @param getDetail get diff detail or not
      * @return list of diff entry
      */
-    public List<DiffEntry> dumpDiff(String destCommitId, boolean getDetail) throws IOException {
-        ObjectId srcCommitId = Optional.ofNullable(this.repo.exactRef("HEAD"))
+    public List<DiffEntry> dumpDiff(String srcCommit, boolean getDetail) throws IOException {
+        ObjectId destCommitId = Optional.ofNullable(this.repo.exactRef("HEAD"))
                 .orElseThrow(() -> new RuntimeException("should never throw"))
                 .getObjectId();
 
         return dumpDiff(
-                Optional.ofNullable(srcCommitId).orElseThrow(() -> new RuntimeException("should never throw")).name(),
-                destCommitId,
+                srcCommit,
+                Optional.ofNullable(destCommitId).orElseThrow(() -> new RuntimeException("should never throw")).name(),
                 getDetail
         );
     }
@@ -78,6 +81,21 @@ public class Dumper {
             CanonicalTreeParser treeParser = new CanonicalTreeParser();
             treeParser.reset(reader, treeId);
             return treeParser;
+        }
+    }
+
+    public String getContent(String commitId, String path) throws IOException {
+        RevCommit commit;
+        try (RevWalk walk = new RevWalk(this.repo)) {
+            commit = walk.parseCommit(ObjectId.fromString(commitId));
+        }
+        try (TreeWalk treeWalk = TreeWalk.forPath(this.repo, path, commit.getTree())) {
+            ObjectId blobId = treeWalk.getObjectId(0);
+            try (ObjectReader objectReader = this.repo.newObjectReader()) {
+                ObjectLoader objectLoader = objectReader.open(blobId);
+                byte[] bytes = objectLoader.getBytes();
+                return new String(bytes, StandardCharsets.UTF_8);
+            }
         }
     }
 

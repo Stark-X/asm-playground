@@ -22,4 +22,8 @@ public class ClassInfo {
     public String getBinaryName() {
         return binaryName;
     }
+
+    public List<MethodInfo> getMethodsInfo() {
+        return methodsInfo;
+    }
 }
