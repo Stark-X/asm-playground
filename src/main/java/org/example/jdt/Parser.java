@@ -3,11 +3,13 @@ package org.example.jdt;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.example.jdt.formator.GenericFormatter;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 
 public class Parser {
     public ClassInfo parse(Path filePath) {
@@ -50,9 +52,9 @@ public class Parser {
         return new String(bytes).toCharArray();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Parser parser = new Parser();
         ClassInfo classInfo = parser.parse(Path.of("src/main/java/org/example/jdt/Parser.java"));
-        System.out.println(classInfo.containMethod(new MethodInfo.Builder().setDigest("945ec677").build()));
+        new GenericFormatter(System.out).format(Collections.singletonList(classInfo));
     }
 }
