@@ -17,8 +17,7 @@ public class Dumper {
     private final Repository repo;
 
     Dumper(String repoPath) throws IOException {
-        Path repo = Path.of(repoPath, ".git/");
-        this.repo = FileRepositoryBuilder.create(repo.toFile());
+        this.repo = FileRepositoryBuilder.create(Path.of(repoPath, ".git/").toFile());
     }
 
     public List<DiffEntry> dumpDiff(String srcRef, String destRef) throws IOException, GitAPIException {
