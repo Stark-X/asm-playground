@@ -1,6 +1,7 @@
 package org.example.jdt;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class ClassInfo {
@@ -13,6 +14,17 @@ public class ClassInfo {
 
     public boolean containMethod(MethodInfo methodInfo) {
         return methodsInfo.parallelStream().anyMatch(method -> method.getDigest().equals(methodInfo.getDigest()));
+    }
+
+    public void dropMethodByDigest(String digest) {
+        // digest should only exist once, therefore, it's not necessary to iter all items
+        Iterator<MethodInfo> it = methodsInfo.iterator();
+        while (it.hasNext()) {
+            if (it.next().getDigest().equals(digest)) {
+                it.remove();
+                break;
+            }
+        }
     }
 
     public void setBinaryName(String binaryName) {

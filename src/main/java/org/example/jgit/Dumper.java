@@ -31,17 +31,17 @@ public class Dumper {
     /**
      * dump diff entries between HEAD and source commit
      *
-     * @param srcCommit baseline commit id, full length id (40 char)
-     * @param getDetail get diff detail or not
+     * @param baselineCommit baseline commit id, full length id (40 char)
+     * @param getDetail      get diff detail or not
      * @return list of diff entry
      */
-    public List<DiffEntry> dumpDiff(String srcCommit, boolean getDetail) throws IOException {
+    public List<DiffEntry> dumpDiff(String baselineCommit, boolean getDetail) throws IOException {
         ObjectId destCommitId = Optional.ofNullable(this.repo.exactRef("HEAD"))
                 .orElseThrow(() -> new RuntimeException("should never throw"))
                 .getObjectId();
 
         return dumpDiff(
-                srcCommit,
+                baselineCommit,
                 Optional.ofNullable(destCommitId).orElseThrow(() -> new RuntimeException("should never throw")).name(),
                 getDetail
         );
@@ -50,16 +50,16 @@ public class Dumper {
     /**
      * dump diff entries between two commits
      *
-     * @param srcCommitId  baseline commit id, full length id (40 char)
-     * @param destCommitId to compare commit id, full length id (40 char)
-     * @param getDetail    get diff detail or not
+     * @param baselineCommit  baseline commit id, full length id (40 char)
+     * @param toCompareCommit to compare commit id, full length id (40 char)
+     * @param getDetail       get diff detail or not
      * @return list of diff entry
      */
-    public List<DiffEntry> dumpDiff(String srcCommitId, String destCommitId, boolean getDetail) throws IOException {
+    public List<DiffEntry> dumpDiff(String baselineCommit, String toCompareCommit, boolean getDetail) throws IOException {
         Git gitRepo = new Git(this.repo);
 
-        AbstractTreeIterator oldTreeIter = prepareTreeParser(srcCommitId);
-        AbstractTreeIterator newTreeIter = prepareTreeParser(destCommitId);
+        AbstractTreeIterator oldTreeIter = prepareTreeParser(baselineCommit);
+        AbstractTreeIterator newTreeIter = prepareTreeParser(toCompareCommit);
 
         DiffCommand diffCommand = gitRepo.diff().setOldTree(oldTreeIter).setNewTree(newTreeIter);
         diffCommand.setShowNameAndStatusOnly(!getDetail);
@@ -85,10 +85,18 @@ public class Dumper {
     }
 
     public String getContent(String commitId, String path) throws IOException {
+        return getContent(ObjectId.fromString(commitId), path);
+    }
+
+    public String getContent(ObjectId objectId, String filePath) throws IOException {
         RevCommit commit;
         try (RevWalk walk = new RevWalk(this.repo)) {
-            commit = walk.parseCommit(ObjectId.fromString(commitId));
+            commit = walk.parseCommit(objectId);
         }
+        return getContent(commit, filePath);
+    }
+
+    private String getContent(RevCommit commit, String path) throws IOException {
         try (TreeWalk treeWalk = TreeWalk.forPath(this.repo, path, commit.getTree())) {
             ObjectId blobId = treeWalk.getObjectId(0);
             try (ObjectReader objectReader = this.repo.newObjectReader()) {
