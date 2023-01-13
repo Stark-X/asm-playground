@@ -26,7 +26,7 @@ public class Parser {
 
         CompilationUnit unit = (CompilationUnit) parser.createAST(null);
         ClassInfo classInfo = new ClassInfo();
-        DemoVisitor visitor = new DemoVisitor(classInfo);
+        ClassInfoGenVisitor visitor = new ClassInfoGenVisitor(classInfo);
         unit.accept(visitor);
 
         return classInfo;

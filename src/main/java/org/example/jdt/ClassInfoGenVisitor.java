@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class DemoVisitor extends ASTVisitor {
+public class ClassInfoGenVisitor extends ASTVisitor {
     private final ClassInfo classInfo;
 
-    public DemoVisitor(ClassInfo classInfo) {
+    public ClassInfoGenVisitor(ClassInfo classInfo) {
         this.classInfo = classInfo;
     }
 
