@@ -2,6 +2,8 @@ package org.example;
 
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.example.error.GitOperationException;
+import org.example.error.wrapper.GenericThrowingFunctionWrapper;
 import org.example.jdt.ClassInfo;
 import org.example.jdt.Parser;
 import org.example.jdt.formator.GenericFormatter;
@@ -24,35 +26,32 @@ public class VersionClassesDiffer {
         this.parser = new Parser();
     }
 
-    public List<ClassInfo> diff(String toCompareCommit, String baselineCommit) throws IOException {
+    public List<ClassInfo> diff(String toCompareCommit, String baselineCommit) throws GitOperationException {
         List<DiffEntry> diffEntries = dumper.dumpDiff(baselineCommit, toCompareCommit, false);
         List<DiffEntry> validDiffEntries = new Filter(diffEntries).filter();
-        return validDiffEntries.stream().map(diffEntry -> {
+
+        return validDiffEntries.stream().map(GenericThrowingFunctionWrapper.wrapFunc(diffEntry -> {
             ClassInfo newClassInfo = buildClassInfo(toCompareCommit, diffEntry);
-            // all new files
+            logger.info("Add all new files to diff list");
             if (diffEntry.getChangeType().equals(DiffEntry.ChangeType.ADD)) {
                 return newClassInfo;
             }
 
-            // modified files
+            logger.info("Add all modified files to diff list");
             ClassInfo oldClassInfo = buildClassInfo(baselineCommit, diffEntry);
             oldClassInfo.getMethodsInfo().forEach(methodInfo -> newClassInfo.dropMethodByDigest(methodInfo.getDigest()));
             return newClassInfo;
-        }).collect(Collectors.toList());
+        })).collect(Collectors.toList());
 
     }
 
-    private ClassInfo buildClassInfo(String baselineCommit, DiffEntry diffEntry) {
+    private ClassInfo buildClassInfo(String baselineCommit, DiffEntry diffEntry) throws GitOperationException {
         char[] fileContent;
-        try {
-            fileContent = dumper.getContent(baselineCommit, diffEntry.getNewPath()).toCharArray();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        fileContent = dumper.getContent(baselineCommit, diffEntry.getNewPath()).toCharArray();
         return parser.parse(fileContent, FilenameUtils.getBaseName(diffEntry.getNewPath()));
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws GitOperationException, IOException {
         String repoPath = ".";
         String toCompareCommit = "4008ca1dccbadabc9681dad2abb41372ee861404";
         String baselineCommit = "da141e6efef2eb09e2dd0ea173693a2bedb2fdbb";

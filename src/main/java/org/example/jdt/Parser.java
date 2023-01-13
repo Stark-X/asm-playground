@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 
 public class Parser {
-    public ClassInfo parse(Path filePath) {
+    public ClassInfo parse(Path filePath) throws IOException {
         return parse(getFileContent(filePath), filePath.getFileName().toString());
     }
 
@@ -38,7 +38,7 @@ public class Parser {
      * @param filePath file path
      * @return char array
      */
-    private char[] getFileContent(Path filePath) {
+    private char[] getFileContent(Path filePath) throws IOException {
         // CRC32: 945ec677
         byte[] bytes;
         try (BufferedInputStream in = new BufferedInputStream(Files.newInputStream(filePath))) {
@@ -46,8 +46,6 @@ public class Parser {
             if (in.read(bytes) != bytes.length) {
                 throw new IOException("File content is not fully read");
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
         return new String(bytes).toCharArray();
     }
