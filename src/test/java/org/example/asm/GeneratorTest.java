@@ -1,16 +1,12 @@
 package org.example.asm;
 
-import org.example.asm.Generator;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class GeneratorTest {
 
-    private static ClassLoader classLoader;
-
-    static class MyClassLoader extends ClassLoader {
+    private static final ClassLoader classLoader = new ClassLoader() {
         @Override
         protected Class<?> findClass(String name) throws ClassNotFoundException {
             if ("com.example.HelloWorld".equals(name)) {
@@ -23,15 +19,10 @@ class GeneratorTest {
             }
             throw new ClassNotFoundException("Class not found: " + name);
         }
-    }
-
-    @BeforeAll
-    static void setUp() {
-        classLoader = new MyClassLoader();
-    }
+    };
 
     @Test
-    void should_return_content_when_dump_and_exec_print() throws Exception{
+    void should_return_content_when_dump_and_exec_print() throws Exception {
         Class<?> clazz = classLoader.loadClass("com.example.HelloWorld");
         Object instance = clazz.getDeclaredConstructor().newInstance();
         assertEquals("toString content", instance.toString());
