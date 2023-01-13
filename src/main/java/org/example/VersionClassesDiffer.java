@@ -21,7 +21,7 @@ public class VersionClassesDiffer {
 
     public VersionClassesDiffer(String repoPath) throws IOException {
         this.dumper = new Dumper(repoPath);
-        parser = new Parser();
+        this.parser = new Parser();
     }
 
     public List<ClassInfo> diff(String toCompareCommit, String baselineCommit) throws IOException {
