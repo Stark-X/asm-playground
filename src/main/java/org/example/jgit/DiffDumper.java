@@ -19,10 +19,10 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
-public class Dumper {
+public class DiffDumper {
     private final Repository repo;
 
-    public Dumper(String repoPath) throws IOException {
+    public DiffDumper(String repoPath) throws IOException {
         this.repo = FileRepositoryBuilder.create(Path.of(repoPath, ".git/").toFile());
     }
 
@@ -33,7 +33,7 @@ public class Dumper {
      * @param getDetail      get diff detail or not
      * @return list of diff entry
      */
-    public List<DiffEntry> dumpDiff(String baselineCommit, boolean getDetail) throws GitOperationException {
+    public List<DiffEntry> dump(String baselineCommit, boolean getDetail) throws GitOperationException {
         Ref head;
         try {
             head = this.repo.exactRef("HEAD");
@@ -44,7 +44,7 @@ public class Dumper {
                 .orElseThrow(() -> new RuntimeException("should never throw"))
                 .getObjectId();
 
-        return dumpDiff(
+        return dump(
                 baselineCommit,
                 Optional.ofNullable(destCommitId).orElseThrow(() -> new RuntimeException("should never throw")).name(),
                 getDetail
@@ -59,7 +59,7 @@ public class Dumper {
      * @param getDetail       get diff detail or not
      * @return list of diff entry
      */
-    public List<DiffEntry> dumpDiff(String baselineCommit, String toCompareCommit, boolean getDetail) throws GitOperationException {
+    public List<DiffEntry> dump(String baselineCommit, String toCompareCommit, boolean getDetail) throws GitOperationException {
         Git gitRepo = new Git(this.repo);
 
         AbstractTreeIterator oldTreeIter;
@@ -122,8 +122,8 @@ public class Dumper {
     }
 
     public static void main(String[] args) throws IOException, GitOperationException {
-        Dumper dumper = new Dumper(".");
-        List<DiffEntry> diffEntries = dumper.dumpDiff("fd41e1369e139d886b82a56f7f33a8eabe1f88f8", false);
+        DiffDumper dumper = new DiffDumper(".");
+        List<DiffEntry> diffEntries = dumper.dump("fd41e1369e139d886b82a56f7f33a8eabe1f88f8", false);
         diffEntries.forEach(System.out::println);
     }
 }

@@ -7,47 +7,54 @@ import org.example.error.wrapper.GenericThrowingFunctionWrapper;
 import org.example.jdt.ClassInfo;
 import org.example.jdt.Parser;
 import org.example.jdt.formator.GenericFormatter;
-import org.example.jgit.Dumper;
-import org.example.jgit.Filter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.example.jgit.DiffDumper;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class VersionClassesDiffer {
-    private final Dumper dumper;
+    private final DiffDumper diffDumper;
     private final Parser parser;
-    Logger logger = LoggerFactory.getLogger(VersionClassesDiffer.class);
 
     public VersionClassesDiffer(String repoPath) throws IOException {
-        this.dumper = new Dumper(repoPath);
+        this.diffDumper = new DiffDumper(repoPath);
         this.parser = new Parser();
     }
 
+    /**
+     * extract the new classes and modified classes with methods
+     *
+     * @param toCompareCommit the commit id to be compared
+     * @param baselineCommit  the baseline commit
+     * @return list of ClassInfo
+     */
     public List<ClassInfo> diff(String toCompareCommit, String baselineCommit) throws GitOperationException {
-        List<DiffEntry> diffEntries = dumper.dumpDiff(baselineCommit, toCompareCommit, false);
-        List<DiffEntry> validDiffEntries = new Filter(diffEntries).filter();
+        Stream<DiffEntry> validDiffEntries = diffDumper.dump(baselineCommit, toCompareCommit, false).parallelStream()
+                .filter(diffEntry -> diffEntry.getNewPath().endsWith(".java"))
+                .filter(diffEntry -> diffEntry.getNewPath().contains("src/main/java"))
+                .filter(diffEntry -> diffEntry.getChangeType().equals(DiffEntry.ChangeType.ADD) || diffEntry.getChangeType().equals(DiffEntry.ChangeType.MODIFY));
 
-        return validDiffEntries.stream().map(GenericThrowingFunctionWrapper.wrapFunc(diffEntry -> {
-            ClassInfo newClassInfo = buildClassInfo(toCompareCommit, diffEntry);
-            logger.info("Add all new files to diff list");
-            if (diffEntry.getChangeType().equals(DiffEntry.ChangeType.ADD)) {
-                return newClassInfo;
-            }
+        return validDiffEntries.map(GenericThrowingFunctionWrapper.wrapFunc(diffEntry -> {
+                    ClassInfo newClassInfo = buildClassInfo(toCompareCommit, diffEntry);
+                    // Add all new files to diff list
+                    if (diffEntry.getChangeType().equals(DiffEntry.ChangeType.ADD)) {
+                        return newClassInfo;
+                    }
 
-            logger.info("Add all modified files to diff list");
-            ClassInfo oldClassInfo = buildClassInfo(baselineCommit, diffEntry);
-            oldClassInfo.getMethodsInfo().forEach(methodInfo -> newClassInfo.dropMethodByDigest(methodInfo.getDigest()));
-            return newClassInfo;
-        })).collect(Collectors.toList());
+                    // Add all modified files to diff list
+                    ClassInfo oldClassInfo = buildClassInfo(baselineCommit, diffEntry);
+                    oldClassInfo.getMethodsInfo().forEach(methodInfo -> newClassInfo.dropMethodByDigest(methodInfo.getDigest()));
+                    return newClassInfo;
+                }))
+                .filter(classInfo -> !classInfo.getMethodsInfo().isEmpty())
+                .collect(Collectors.toList());
 
     }
 
     private ClassInfo buildClassInfo(String baselineCommit, DiffEntry diffEntry) throws GitOperationException {
-        char[] fileContent;
-        fileContent = dumper.getContent(baselineCommit, diffEntry.getNewPath()).toCharArray();
+        char[] fileContent = diffDumper.getContent(baselineCommit, diffEntry.getNewPath()).toCharArray();
         return parser.parse(fileContent, FilenameUtils.getBaseName(diffEntry.getNewPath()));
     }
 
