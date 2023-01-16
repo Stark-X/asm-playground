@@ -28,7 +28,7 @@ public class ClassInfoGenVisitor extends ASTVisitor {
     @Override
     public boolean visit(MethodDeclaration node) {
         List<String> params = Stream.of(node.resolveBinding().getParameterTypes())
-                .map(ITypeBinding::getBinaryName)
+                .map(ITypeBinding::getQualifiedName)
                 .collect(Collectors.toList());
 
         HashCode digest = Hashing.crc32().hashBytes(node.getBody().toString().getBytes());
