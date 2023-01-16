@@ -2,14 +2,15 @@ package org.example.jdt;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jdt.core.dom.*;
+import org.example.error.BindingCannotResolvedException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ClassInfoGenVisitorTest {
     private final ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
@@ -17,7 +18,8 @@ class ClassInfoGenVisitorTest {
     private final File interfaceFile = new File("src/test/java/org/example/jdt/mocked/InterfaceCase.java");
     private final File innerClassFile = new File("src/test/java/org/example/jdt/mocked/InnerClassCase.java");
 
-    public ClassInfoGenVisitorTest() {
+    @BeforeEach
+    public void setUp() {
         this.parser.setResolveBindings(true);
         this.parser.setEnvironment(new String[]{"target/test-classes", "target/classes"}, new String[]{"src"}, new String[]{"UTF-8"}, true);
         this.parser.setBindingsRecovery(true);
@@ -75,5 +77,20 @@ class ClassInfoGenVisitorTest {
 
         assertFalse(classInfo.getInnerClasses().isEmpty());
         assertEquals("org.example.jdt.mocked.InnerClassCase$Inner", classInfo.getInnerClasses().get(0).getBinaryName());
+    }
+
+    @Test
+    void should_raise_exception_given_not_resolve_binding() throws IOException {
+        ClassInfo classInfo = new ClassInfo();
+        ClassInfoGenVisitor visitor = new ClassInfoGenVisitor(classInfo);
+
+        parser.setResolveBindings(false);
+        ASTNode root = buildASTNode(innerClassFile);
+
+        RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
+            root.accept(visitor);
+        });
+        assertEquals(BindingCannotResolvedException.class, thrown.getCause().getClass());
+        assertEquals("Class binding cannot resolved", thrown.getCause().getMessage());
     }
 }
