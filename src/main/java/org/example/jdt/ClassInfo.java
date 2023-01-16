@@ -8,6 +8,8 @@ public class ClassInfo {
     private final List<MethodInfo> methodsInfo = new ArrayList<>();
     private String binaryName;
 
+    private final List<ClassInfo> innerClasses = new ArrayList<>();
+
     public void addMethod(MethodInfo methodInfo) {
         this.methodsInfo.add(methodInfo);
     }
@@ -37,5 +39,13 @@ public class ClassInfo {
 
     public List<MethodInfo> getMethodsInfo() {
         return methodsInfo;
+    }
+
+    public List<ClassInfo> getInnerClasses() {
+        return innerClasses;
+    }
+
+    public void addInnerClass(ClassInfo innerClass) {
+        this.innerClasses.add(innerClass);
     }
 }

@@ -2,6 +2,7 @@ package org.example;
 
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.jgit.diff.DiffEntry;
+import org.example.error.BindingCannotResolvedException;
 import org.example.error.GitOperationException;
 import org.example.error.wrapper.GenericThrowingFunctionWrapper;
 import org.example.jdt.ClassInfo;
@@ -53,7 +54,7 @@ public class VersionClassesDiffer {
 
     }
 
-    private ClassInfo buildClassInfo(String baselineCommit, DiffEntry diffEntry) throws GitOperationException {
+    private ClassInfo buildClassInfo(String baselineCommit, DiffEntry diffEntry) throws GitOperationException, BindingCannotResolvedException {
         char[] fileContent = diffDumper.getContent(baselineCommit, diffEntry.getNewPath()).toCharArray();
         return parser.parse(fileContent, FilenameUtils.getBaseName(diffEntry.getNewPath()));
     }

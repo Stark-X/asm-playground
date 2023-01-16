@@ -1,5 +1,6 @@
 package org.example.jdt;
 
+import org.example.error.BindingCannotResolvedException;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.util.StringUtils;
 
@@ -12,7 +13,7 @@ class ParserTest {
     private final String fileName = "HelloWorld.java";
 
     @Test
-    void should_parse_simple_class() {
+    void should_parse_simple_class() throws BindingCannotResolvedException {
         String classContent = packageLine +
                 "class HelloWorld {\n" +
                 "    public void sayHello() {\n" +
@@ -32,7 +33,7 @@ class ParserTest {
     }
 
     @Test
-    void should_parse_class_with_parameterized_method() {
+    void should_parse_class_with_parameterized_method() throws BindingCannotResolvedException {
         String classContent = packageLine +
                 "class HelloWorld {\n" +
                 "    public void sayHello(String words, boolean foo) {\n" +
@@ -46,6 +47,6 @@ class ParserTest {
 
         List<String> parameters = methodInfo.getParameters();
         assertEquals("java.lang.String", parameters.get(0));
-        assertEquals("Z", parameters.get(1));
+        assertEquals("boolean", parameters.get(1));
     }
 }

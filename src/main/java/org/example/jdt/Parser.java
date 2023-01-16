@@ -3,6 +3,7 @@ package org.example.jdt;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.example.error.BindingCannotResolvedException;
 import org.example.jdt.formator.GenericFormatter;
 
 import java.io.BufferedInputStream;
@@ -12,11 +13,11 @@ import java.nio.file.Path;
 import java.util.Collections;
 
 public class Parser {
-    public ClassInfo parse(Path filePath) throws IOException {
+    public ClassInfo parse(Path filePath) throws IOException, BindingCannotResolvedException {
         return parse(getFileContent(filePath), filePath.getFileName().toString());
     }
 
-    public ClassInfo parse(char[] fileContent, String fileName) {
+    public ClassInfo parse(char[] fileContent, String fileName) throws BindingCannotResolvedException {
         ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
         parser.setResolveBindings(true);
         parser.setEnvironment(new String[]{"target/classes"}, new String[]{"src/"}, new String[]{"UTF-8"}, true);
@@ -25,6 +26,9 @@ public class Parser {
         parser.setSource(fileContent);
 
         CompilationUnit unit = (CompilationUnit) parser.createAST(null);
+        if (!unit.getAST().hasResolvedBindings()) {
+            throw new BindingCannotResolvedException("Class binding cannot resolved");
+        }
         ClassInfo classInfo = new ClassInfo();
         ClassInfoGenVisitor visitor = new ClassInfoGenVisitor(classInfo);
         unit.accept(visitor);
@@ -50,9 +54,9 @@ public class Parser {
         return new String(bytes).toCharArray();
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, BindingCannotResolvedException {
         Parser parser = new Parser();
-        ClassInfo classInfo = parser.parse(Path.of("src/main/java/org/example/jdt/Parser.java"));
+        ClassInfo classInfo = parser.parse(Path.of("src/test/java/org/example/jdt/mocked/Class4ParserTest.java"));
         new GenericFormatter(System.out).format(Collections.singletonList(classInfo));
     }
 }
