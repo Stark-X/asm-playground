@@ -33,6 +33,19 @@ public class MethodInfo {
         return digest;
     }
 
+    public boolean equals(String name, List<String> parameters) {
+        if (!this.name.equals(name)) {
+            return false;
+        }
+
+        for (int i = 0; i < this.parameters.size(); i++) {
+            if (!this.parameters.get(i).equals(parameters.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static class Builder {
         private final MethodInfo ret = new MethodInfo();
 

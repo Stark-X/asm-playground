@@ -1,8 +1,11 @@
 package org.example.jdt;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ClassInfo {
     private final List<MethodInfo> methodsInfo = new ArrayList<>();
@@ -18,8 +21,16 @@ public class ClassInfo {
         return methodsInfo.parallelStream().anyMatch(method -> method.getDigest().equals(digest));
     }
 
-    public boolean containMethod(MethodInfo methodInfo) {
+    public boolean containMethod(@Nonnull MethodInfo methodInfo) {
         return containMethod(methodInfo.getDigest());
+    }
+
+    public boolean containMethod(String name, List<String> parameters) {
+        return methodsInfo.parallelStream().anyMatch(method -> method.equals(name, parameters));
+    }
+
+    public boolean containMethod(String name, String... parameters) {
+        return containMethod(name, Arrays.stream(parameters).collect(Collectors.toUnmodifiableList()));
     }
 
     public void dropMethodByDigest(String digest) {
