@@ -8,7 +8,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ClassInfoTest {
 
     @Test
-    void containMethod() {
+    void containMethod_String() {
+        ClassInfo classInfo = new ClassInfo();
+        MethodInfo methodInfo = new MethodInfo();
+        methodInfo.setDigest("foobar123");
+        classInfo.addMethod(methodInfo);
+
+        assertTrue(classInfo.containMethod("foobar123"));
+    }
+
+    @Test
+    void containMethod_MethodInfo() {
         ClassInfo classInfo = new ClassInfo();
         MethodInfo methodInfo = new MethodInfo();
         methodInfo.setDigest("foobar123");

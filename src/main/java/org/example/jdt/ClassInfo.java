@@ -14,8 +14,12 @@ public class ClassInfo {
         this.methodsInfo.add(methodInfo);
     }
 
+    public boolean containMethod(String digest) {
+        return methodsInfo.parallelStream().anyMatch(method -> method.getDigest().equals(digest));
+    }
+
     public boolean containMethod(MethodInfo methodInfo) {
-        return methodsInfo.parallelStream().anyMatch(method -> method.getDigest().equals(methodInfo.getDigest()));
+        return containMethod(methodInfo.getDigest());
     }
 
     public void dropMethodByDigest(String digest) {
